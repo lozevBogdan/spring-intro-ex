@@ -14,9 +14,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
+import static java.time.LocalDate.parse;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -51,7 +51,7 @@ public class BookServiceImpl implements BookService {
             Author author = this.authorRepository.findById((long) authorIndex).get();
             EditionType editionType = EditionType.values()[Integer.parseInt(data[0])];
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-            LocalDate localDate = LocalDate.parse(data[1], formatter);
+            LocalDate localDate = parse(data[1], formatter);
             int copies = Integer.parseInt(data[2]);
             BigDecimal price = new BigDecimal(data[3]);
             AgeRestriction ageRestriction = AgeRestriction.values()[Integer.parseInt(data[4])];
@@ -96,6 +96,101 @@ public class BookServiceImpl implements BookService {
                         (EditionType.GOLD,5000)
                 .forEach(b-> System.out.println(b.getTitle()));
 
+
+    }
+
+    @Override
+    public void printBooksTitleAndPriceBetween5And40() {
+
+        this.bookRepo.findBookByPriceNotBetween5And40()
+                .forEach(b->
+                        System.out.printf("%s - $%s%n",b.getTitle(),b.getPrice()));
+
+    }
+
+    @Override
+    public void printBooksTitleWithRealisedDateNotIn(String localDate) {
+
+        this.bookRepo.findAllByReleaseDateNot(localDate)
+        .forEach(b-> System.out.println(b.getTitle()));
+
+
+    }
+
+    @Override
+    public void printBooksByRealisedDateBefore(String date) {
+
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("dd-MM-yyyy");
+
+        LocalDate localDate =  parse(date,formatter);
+
+        this.bookRepo.findBookByReleaseDateBefore(localDate)
+        .forEach(b-> System.out.printf("%s %s %s%n"
+        ,b.getTitle(),b.getEditionType(),b.getPrice()));
+
+
+    }
+
+    @Override
+    public void printBooksTitleByContainingAGivenString(String letter) {
+
+        this.bookRepo.findBookByTitleContaining(letter)
+        .forEach(b-> System.out.println(b.getTitle()));
+
+
+    }
+
+    @Override
+    public void printBooksTitleByAuthorLastNameStartingWith(String letter) {
+
+        this.bookRepo.findBookByAuthorLastNameStartingWith(letter)
+                .forEach(b-> System.out.printf("%s (%s)%n",b.getTitle()
+                        ,b.getAuthor().getFirstName() + " " + b.getAuthor().getLastName()));
+
+    }
+
+    @Override
+    public void printBooksByTitleLengthMoreThan(int length) {
+
+        System.out.println(this.bookRepo.findBookByTitleLengthMoreThan(length));
+
+    }
+
+    @Override
+    public void printTotalBooksByCopies() {
+
+        Map<String,Integer> collection = new HashMap<>();
+
+        List<Book> bookList = this.bookRepo.findAll();
+
+        bookList
+                .stream()
+                .forEach(b->{
+                    String name = b.getAuthor().getFirstName() + " " + b.getAuthor().getLastName();
+                  int copies = b.getCopies();
+
+                  collection.putIfAbsent(name,0);
+                  collection.put(name,collection.get(name) + copies);
+
+                });
+
+        collection.entrySet()
+                .stream()
+                .sorted((a,b)->Integer.compare(b.getValue(),a.getValue()))
+                .forEach(e-> System.out.println(e.getKey() + " - " + e.getValue()));
+
+    }
+
+    @Override
+    public void printAllBookInfoByTitle(String title) {
+
+        Book book = this.bookRepo.findBookByTitle(title.trim());
+
+        BookInfo bookInfo = new BookInfo(book.getTitle(),book.getEditionType()
+        ,book.getAgeRestriction(),book.getPrice());
+
+        System.out.println(bookInfo);
 
     }
 

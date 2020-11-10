@@ -35,4 +35,12 @@ public class AuthorServesImpl implements AuthorService {
         }
 
     }
+
+    @Override
+    public void findAuthorsByFirstNameEndingWith(String end) {
+
+        this.authorRepo.findAllByFirstNameEndingWith(end)
+        .forEach(a-> System.out.println(a.getFirstName() + " " + a.getLastName()));
+
+    }
 }
